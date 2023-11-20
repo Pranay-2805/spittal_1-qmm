@@ -1,0 +1,90 @@
+---
+title: "ASSIGNMENT 4"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+date: "19-11-2023"
+---
+```{r}
+# Load the lpSolve package
+library(lpSolve)
+
+# Define the data
+required_workers <- c(18, 27, 22, 26, 25, 21, 19) # Number of workers needed from Sunday to Saturday
+
+# Wages for each shift as per the problem statement
+shift_wages <- c(775, 800, 800, 800, 800, 775, 750) # Wages for shifts 1 to 7
+
+# Set up the integer programming model
+# Objective: Minimize total wage cost
+# Constraints: Number of workers per day
+
+# Number of variables (one for each shift)
+num_vars <- length(shift_wages)
+
+# Coefficients of the objective function
+objective <- shift_wages
+
+# Matrix for constraints
+# Each row corresponds to a day, and each column corresponds to a shift
+constraint_matrix <- matrix(c(
+  0, 1, 1, 1, 1, 1, 0,  # Sunday
+  0, 0, 1, 1, 1, 1, 1,  # Monday
+  1, 0, 0, 1, 1, 1, 1,  # Tuesday
+  1, 1, 0, 0, 1, 1, 1,  # Wednesday
+  1, 1, 1, 0, 0, 1, 1,  # Thursday
+  1, 1, 1, 1, 0, 0, 1,  # Friday
+  1, 1, 1, 1, 1, 0, 0   # Saturday
+), nrow = 7, byrow = TRUE)
+
+# Direction of the constraints (greater than or equal to the required workers)
+constraint_dir <- rep(">=", 7)
+
+# Right-hand side of the constraints (required workers each day)
+constraint_rhs <- required_workers
+
+# Define the variables as integer
+variable_types <- rep("integer", num_vars)
+
+# Solve the model
+solution <- lp("min", objective, constraint_matrix, constraint_dir, constraint_rhs, 
+               all.int = TRUE, int.vec = 1:num_vars)
+
+# Display results
+if(solution$status == 0) {
+  cat("Optimal solution found.\n")
+  cat("Total cost: $", sum(solution$solution * shift_wages), "\n")
+  cat("Number of workers scheduled for each shift:\n")
+  for(i in 1:num_vars) {
+    cat("Shift ", i, ": ", solution$solution[i], "\n")
+  }
+} else {
+  cat("No optimal solution found.")
+}
+
+
+```
+```{r}
+  constraint_matrix <-matrix(c(
+    
+    0, 4, 5, 0, 8, 1, 0, # Sunday
+    0, 0, 5, 0, 8, 1, 13, # Monday
+    2, 0, 0, 0, 8, 1, 13, # Tuesday
+    2, 4, 0, 0, 8, 1, 13, # Wednesday
+    2, 4, 5, 0, 0, 1, 13, # Thursday
+    2, 4, 5, 0, 0, 0, 13, # Friday
+    2, 4, 5, 0, 8, 0, 0  # Saturday
+), nrow = 7, byrow = TRUE)
+
+row.names(constraint_matrix) <- c("sunday","monday","tuesday", "wednesday",
+                                "thursday", "friday", "saturday" )
+colnames(constraint_matrix)  <- c("Shift 1", "Shift 2", "Shift 3", "Shift 4", "Shift 5", "Shift 6", "Shift 7")
+
+    
+print(constraint_matrix)
+
+```
+```{r}
+rowSums (constraint_matrix)
+```
